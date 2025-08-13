@@ -1,3 +1,28 @@
+
+
+
+
+Short Steps
+Store Unique Letters from all words.
+
+Build Graph using first mismatch of adjacent words.
+
+Prefix Rule Check → If a longer word comes before its exact prefix → invalid.
+
+Topological Sort (Kahn’s Algorithm) to get order.
+
+Filter Order → Keep only letters that appear in words.
+
+Cycle Detection → If order size < unique letter count → return "".
+
+Else return the order.
+
+
+
+
+
+
+
 Chalo, main tumhe **Alien Dictionary** problem ka pura logic Hinglish me step-by-step samjhata hoon.
 Isme hum basically **graph banayenge** aur **topological sort** karenge.
 
