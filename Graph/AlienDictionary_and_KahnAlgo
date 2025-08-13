@@ -200,7 +200,7 @@ public:
         }
 
         // Step 2: Get topological order
-        vector<int> topo = topoSort(K, adj);
+        vector<int> topo = topoSort(K, adj);  // k is number of Nodes in graph 
 
         // Step 3: Cycle check
         if ((int)topo.size() < K) {
