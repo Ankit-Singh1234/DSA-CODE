@@ -1,0 +1,231 @@
+Chalo, main tumhe **Alien Dictionary** problem ka pura logic Hinglish me step-by-step samjhata hoon.
+Isme hum basically **graph banayenge** aur **topological sort** karenge.
+
+---
+
+## **Logic**
+
+Yeh problem ka simple matlab hai:
+Hume words ka ek list diya gaya hai jo alien language ke hisaab se sorted hai.
+Hume **characters ka order** nikalna hai jo iss sorting rule ko follow kare.
+
+Ye kaam hum **Directed Graph** aur **Topological Sort** ka use karke karenge.
+
+---
+
+## **Steps**
+
+### **Step 1: Graph Banana**
+
+1. Har consecutive words ka pair compare karo.
+2. Jo **pehla character** different mile usse ordering milta hai.
+
+   * Example: `"baa"` aur `"abcd"` → pehla difference `'b'` vs `'a'` → iska matlab **'b' a ke pehle aata hai** → ek edge ban gaya: `b → a`.
+3. Agar dono words same shuru ho rahe hain, lekin pehla word lamba hai (jaise `"abc"` aur `"ab"`), toh yeh **invalid case** hai → return `""`.
+
+---
+
+### **Step 2: Topological Sort (Kahn’s Algorithm)**
+
+1. Har node (character) ka `indegree` count karo (kitne edges us par aa rahe hain).
+2. Jinka `indegree = 0` hai unko queue me daalo.
+3. Jab tak queue empty na ho:
+
+   * Ek character nikaalo → result me add karo.
+   * Uske saare neighbours ka `indegree` 1 kam karo.
+   * Jiska `indegree` 0 ho jaaye → queue me daalo.
+
+---
+
+### **Step 3: Invalid Case Detect Karna**
+
+* Agar topological sort ka result ka size `< total characters` hai → iska matlab **cycle hai** → return `""`.
+* Agar prefix violation mil gaya toh pehle hi return `""`.
+
+---
+
+### **Step 4: Answer Return Karna**
+
+* Topological order ke characters ko string me convert karo aur return karo.
+
+---
+
+## **Dry Run Example**
+
+Words:
+`["baa", "abcd", "abca", "cab", "cad"]`
+`K = 4`
+
+**Graph banana:**
+
+1. `"baa"` vs `"abcd"` → `'b'` → `'a'`
+2. `"abcd"` vs `"abca"` → `'d'` → `'a'`
+3. `"abca"` vs `"cab"` → `'a'` → `'c'`
+4. `"cab"` vs `"cad"` → `'b'` → `'d'`
+
+Graph:
+
+```
+b → a
+b → d
+d → a
+a → c
+```
+
+---
+
+**Topological Sort:**
+
+* Indegree:
+
+  ```
+  a: 2  (from b, d)
+  b: 0
+  c: 1  (from a)
+  d: 1  (from b)
+  ```
+
+Queue: `[b]`
+
+Processing:
+
+1. Pop `b` → order: `b` → `a(1)`, `d(0)` → push `d`
+2. Pop `d` → order: `b, d` → `a(0)` → push `a`
+3. Pop `a` → order: `b, d, a` → `c(0)` → push `c`
+4. Pop `c` → order: `b, d, a, c`
+
+Answer: `"bdac"`
+
+---
+
+Agar tum chaho to main iska **flowchart-type pseudo code** bana ke de sakta hoon, jisme tum easily dekh paoge ki kis step ke baad kaunsa step aata hai.
+Kya main wo bana du?
+/////////////////////////////////////////////////////
+
+
+Flow of Execution (Diagram in Words)
+Start
+
+Compare word[i] and word[i+1]
+
+Find first different character
+
+Agar mila → edge banado
+
+Agar nahi mila aur pehla word bada hai → Invalid → return ""
+
+Jab saare words compare ho jaaye → graph ready
+
+Indegree calculate karo
+
+Queue me daalo saare nodes jinka indegree = 0
+
+BFS chalao:
+
+Node nikaalo → result me add karo → neighbours ka indegree kam karo → jo zero ho gaya queue me daalo
+
+Agar result ka size < K → Cycle → return ""
+
+Nahi toh result ko string me convert karo aur return karo
+
+End//////////////////////////////////////
+
+
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+private:
+    // Topological Sort using Kahn's Algorithm
+    vector<int> topoSort(int V, vector<int> adj[]) {
+        vector<int> indegree(V, 0);
+        
+        // Calculate indegree of each node
+        for (int i = 0; i < V; i++) {
+            for (auto it : adj[i]) {
+                indegree[it]++;
+            }
+        }
+
+        queue<int> q;
+        // Push all nodes with indegree 0
+        for (int i = 0; i < V; i++) {
+            if (indegree[i] == 0) {
+                q.push(i);
+            }
+        }
+
+        vector<int> topo;
+        while (!q.empty()) {
+            int node = q.front();
+            q.pop();
+            topo.push_back(node);
+
+            for (auto it : adj[node]) {
+                indegree[it]--;
+                if (indegree[it] == 0) {
+                    q.push(it);
+                }
+            }
+        }
+        return topo;
+    }
+
+public:
+    string findOrder(string dict[], int N, int K) {
+        vector<int> adj[K];
+
+        // Step 1: Build graph
+        for (int i = 0; i < N - 1; i++) {
+            string s1 = dict[i];
+            string s2 = dict[i + 1];
+            int len = min(s1.size(), s2.size());
+            bool foundDiff = false;
+
+            for (int ptr = 0; ptr < len; ptr++) {
+                if (s1[ptr] != s2[ptr]) {
+                    adj[s1[ptr] - 'a'].push_back(s2[ptr] - 'a');
+                    foundDiff = true;
+                    break;
+                }
+            }
+
+            // Prefix violation check
+            if (!foundDiff && s1.size() > s2.size()) {
+                return "";
+            }
+        }
+
+        // Step 2: Topological sort
+        vector<int> topo = topoSort(K, adj);
+
+        // Step 3: Cycle check
+        if ((int)topo.size() < K) {
+            return "";
+        }
+
+        // Step 4: Convert to string
+        string ans = "";
+        for (auto it : topo) {
+            ans += char(it + 'a');
+        }
+        return ans;
+    }
+};
+
+int main() {
+    int N = 5, K = 4;
+    string dict[] = {"baa", "abcd", "abca", "cab", "cad"};
+    
+    Solution obj;
+    string ans = obj.findOrder(dict, N, K);
+
+    if (ans.empty()) {
+        cout << "" << endl; // No valid ordering
+    } else {
+        cout << ans << endl; // Possible ordering
+    }
+
+    return 0;
+}
+
