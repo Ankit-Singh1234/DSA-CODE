@@ -1,0 +1,96 @@
+# 🚀 BFS Approach (Reverse Graph + Kahn’s Algorithm)
+
+DFS me humne **coloring** use karke cycle detect kiya tha.  
+BFS me hum kya karenge:
+
+---
+
+## 🔑 Core Idea (Step by Step)
+
+1. **Graph Reverse karna**
+   - Normal graph me `u → v` ka matlab hai `u` se `v`.  
+   - Reverse graph me `v → u` bana do.  
+   - Kyon?  
+     → Kyunki hume **safe nodes** find karne hain jo **terminal nodes tak pahunchte hain**.  
+     → Agar hum reverse kar dein to terminal nodes se start karke **backtrack** kar sakte hain ki kaun nodes un tak pahunch rahe hain.
+
+2. **Outdegree count nikalna**
+   - Har node ke **outgoing edges** ki ginti.
+
+3. **Terminal Nodes**
+   - Jo node ka `outdegree = 0` hai → wo **terminal** hai → definitely safe.  
+   - Inhe queue me daal do.
+
+4. **BFS Process**
+   - Queue se ek node nikalo → ye safe hai.  
+   - Uske reverse neighbors ka outdegree `-1` karo (ya ghatate jao).  
+   - Agar kisi neighbor ka `outdegree = 0` ho jaye → wo bhi safe → queue me daal do.  
+   - Jo bhi nodes BFS me process ho gaye → safe.
+
+---
+
+## 🔎 Example
+
+
+**Process:**
+- `5` se reverse neighbors = `{2,4}`
+  - Outdegree[2] = 0 → safe → queue me daal do  
+  - Outdegree[4] = 0 → safe → queue me daal do  
+- `6` ka koi reverse neighbor nahi  
+
+Ab queue = `[2,4]` → process karke aur safe mark karo  
+
+✅ **Answer = [2,4,5,6]**
+
+---
+
+## 💻 C++ Code (BFS Approach)
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+class Solution {
+public:
+    vector<int> eventualSafeNodes(vector<vector<int>>& graph) {
+        int n = graph.size();
+        vector<vector<int>> revGraph(n);   // reverse graph
+        vector<int> outdegree(n, 0);
+
+        // Build reverse graph + outdegree
+        for(int u = 0; u < n; u++) {
+            for(int v : graph[u]) {
+                revGraph[v].push_back(u); 
+                outdegree[u]++;
+            }
+        }
+
+        queue<int> q;
+        vector<int> safe;
+
+        // Terminal nodes (outdegree = 0)
+        for(int i = 0; i < n; i++) {
+            if(outdegree[i] == 0) q.push(i);
+        }
+
+        vector<int> isSafe(n, 0);
+
+        while(!q.empty()) {
+            int node = q.front(); q.pop();
+            isSafe[node] = 1;
+
+            for(int nei : revGraph[node]) {
+                outdegree[nei]--;
+                if(outdegree[nei] == 0) {
+                    q.push(nei);
+                }
+            }
+        }
+
+        for(int i = 0; i < n; i++) {
+            if(isSafe[i]) safe.push_back(i);
+        }
+
+        return safe;
+    }
+};
